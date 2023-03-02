@@ -34,3 +34,37 @@ Haar recognises these areas and recognises the face. If the difference between s
 
 <img width="911" alt="image" src="https://user-images.githubusercontent.com/71434443/176613542-06128ab4-2405-4f2e-bbdb-7b28864cff04.png">
 
+  public String getField1() {
+            return field1;
+        }
+
+        public void setField1(String field1) {
+            this.field1 = field1;
+        }
+
+        public int getField2() {
+            return field2;
+        }
+
+        public void setField2(int field2) {
+            this.field2 = field2;
+        }
+    }
+
+    // create a mock CSV data
+    String csvData = "field1,field2\nvalue1,1\nvalue2,2";
+
+    // create a mock Reader for the CSV data
+    Reader reader = new StringReader(csvData);
+
+    // call the CSV_TO_BEAN function with the mock class and Reader
+    BiFunction<Class<?>, Reader, CsvToBean<?>> csvToBean = MyClass.CSV_TO_BEAN;
+    CsvToBean<MockClass> csv = (CsvToBean<MockClass>) csvToBean.apply(MockClass.class, reader);
+
+    // iterate through the CSV data and verify the values
+    List<MockClass> list = csv.parse();
+    assertEquals(2, list.size());
+    assertEquals("value1", list.get(0).getField1());
+    assertEquals(1, list.get(0).getField2());
+    assertEquals("value2", list.get(1).getField1());
+    assertEquals(2, list.get(1).getField2());
