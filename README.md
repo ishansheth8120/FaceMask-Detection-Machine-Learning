@@ -33,3 +33,62 @@ Haar recognises these areas and recognises the face. If the difference between s
 2. This may be further improved with the help of Deep Learning and by automating the process of feature selection with feeding a lot more data and tuning hyperparameters.
 
 <img width="911" alt="image" src="https://user-images.githubusercontent.com/71434443/176613542-06128ab4-2405-4f2e-bbdb-7b28864cff04.png">
+
+
+
+import static org.mockito.Mockito.*;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.json.JSONException;
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
+public class TestClass {
+    
+    @Mock
+    private RMSClient rmsClient;
+    
+    @InjectMocks
+    private MyClass myClass;
+    
+    @Before
+    public void setUp() {
+        MockitoAnnotations.initMocks(this);
+    }
+    
+    @Test
+    public void testExtracted() throws IOException, JSONException {
+        HashMap<String, Map<String, String>> mapMessages = new HashMap<>();
+        mapMessages.put("1", new HashMap<>());
+        
+        myClass.extracted(mapMessages);
+        
+        verify(rmsClient, times(1)).publishTORMS(anyString());
+    }
+    
+    @Test(expected = JSONException.class)
+    public void testExtracted_withJSONException() throws IOException, JSONException {
+        HashMap<String, Map<String, String>> mapMessages = new HashMap<>();
+        mapMessages.put("1", new HashMap<>());
+        
+        doThrow(JSONException.class).when(rmsClient).getJSONFormatMsg(any());
+        
+        myClass.extracted(mapMessages);
+    }
+    
+    @Test(expected = IOException.class)
+    public void testExtracted_withIOException() throws IOException, JSONException {
+        HashMap<String, Map<String, String>> mapMessages = new HashMap<>();
+        mapMessages.put("1", new HashMap<>());
+        
+        doThrow(IOException.class).when(rmsClient).publishTORMS(anyString());
+        
+        myClass.extracted(mapMessages);
+    }
+}
