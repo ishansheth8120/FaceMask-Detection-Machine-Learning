@@ -34,37 +34,39 @@ Haar recognises these areas and recognises the face. If the difference between s
 
 <img width="911" alt="image" src="https://user-images.githubusercontent.com/71434443/176613542-06128ab4-2405-4f2e-bbdb-7b28864cff04.png">
 
-  public String getField1() {
-            return field1;
-        }
+@Test
+public void testBeginProcess() throws Exception {
+    // mock dependencies
+    SolaHelper solaHelper = mock(SolaHelper.class);
+    FxRateHelper fxRateHelper = mock(FxRateHelper.class);
+    ExceptionHandler exceptionHandler = mock(ExceptionHandler.class);
 
-        public void setField1(String field1) {
-            this.field1 = field1;
-        }
+    // create test data
+    List<Integer> rateSetIds = Arrays.asList(1, 2, 3);
+    String solaFxRateDate = "2022-02-01";
 
-        public int getField2() {
-            return field2;
-        }
+    // create test instance
+    MyClass myClass = new MyClass(solaHelper, fxRateHelper, exceptionHandler);
 
-        public void setField2(int field2) {
-            this.field2 = field2;
-        }
-    }
+    // mock solaHelper.fetchFXRate() to return test data
+    FxRateDataResponse fxRateDataResponse = new FxRateDataResponse();
+    Meta meta = new Meta();
+    meta.setTotalCount(3);
+    fxRateDataResponse.setMeta(meta);
+    Result result = new Result();
+    List<Result> resultList = new ArrayList<>();
+    resultList.add(result);
+    fxRateDataResponse.setResult(resultList);
+    when(solaHelper.fetchFXRate(eq(1), any(LocalDate.class))).thenReturn(fxRateDataResponse);
+    when(solaHelper.fetchFXRate(eq(2), any(LocalDate.class))).thenReturn(fxRateDataResponse);
+    when(solaHelper.fetchFXRate(eq(3), any(LocalDate.class))).thenReturn(fxRateDataResponse);
 
-    // create a mock CSV data
-    String csvData = "field1,field2\nvalue1,1\nvalue2,2";
+    // call the method
+    myClass.beginProcess(rateSetIds, solaFxRateDate);
 
-    // create a mock Reader for the CSV data
-    Reader reader = new StringReader(csvData);
+    // verify that the necessary methods were called
+    verify(solaHelper, times(3)).fetchFXRate(anyInt(), any(LocalDate.class));
+    verify(fxRateHelper, times(3)).processFxRateData(anyList(), any(Meta.class));
+    verify(exceptionHandler, times(1)).generateAlerts();
+}
 
-    // call the CSV_TO_BEAN function with the mock class and Reader
-    BiFunction<Class<?>, Reader, CsvToBean<?>> csvToBean = MyClass.CSV_TO_BEAN;
-    CsvToBean<MockClass> csv = (CsvToBean<MockClass>) csvToBean.apply(MockClass.class, reader);
-
-    // iterate through the CSV data and verify the values
-    List<MockClass> list = csv.parse();
-    assertEquals(2, list.size());
-    assertEquals("value1", list.get(0).getField1());
-    assertEquals(1, list.get(0).getField2());
-    assertEquals("value2", list.get(1).getField1());
-    assertEquals(2, list.get(1).getField2());
