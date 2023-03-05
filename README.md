@@ -34,39 +34,69 @@ Haar recognises these areas and recognises the face. If the difference between s
 
 <img width="911" alt="image" src="https://user-images.githubusercontent.com/71434443/176613542-06128ab4-2405-4f2e-bbdb-7b28864cff04.png">
 
-@Test
-public void testBeginProcess() throws Exception {
-    // mock dependencies
-    SolaHelper solaHelper = mock(SolaHelper.class);
-    FxRateHelper fxRateHelper = mock(FxRateHelper.class);
-    ExceptionHandler exceptionHandler = mock(ExceptionHandler.class);
+import static org.junit.Assert.*;
+import org.junit.Test;
 
-    // create test data
-    List<Integer> rateSetIds = Arrays.asList(1, 2, 3);
-    String solaFxRateDate = "2022-02-01";
-
-    // create test instance
-    MyClass myClass = new MyClass(solaHelper, fxRateHelper, exceptionHandler);
-
-    // mock solaHelper.fetchFXRate() to return test data
-    FxRateDataResponse fxRateDataResponse = new FxRateDataResponse();
-    Meta meta = new Meta();
-    meta.setTotalCount(3);
-    fxRateDataResponse.setMeta(meta);
-    Result result = new Result();
-    List<Result> resultList = new ArrayList<>();
-    resultList.add(result);
-    fxRateDataResponse.setResult(resultList);
-    when(solaHelper.fetchFXRate(eq(1), any(LocalDate.class))).thenReturn(fxRateDataResponse);
-    when(solaHelper.fetchFXRate(eq(2), any(LocalDate.class))).thenReturn(fxRateDataResponse);
-    when(solaHelper.fetchFXRate(eq(3), any(LocalDate.class))).thenReturn(fxRateDataResponse);
-
-    // call the method
-    myClass.beginProcess(rateSetIds, solaFxRateDate);
-
-    // verify that the necessary methods were called
-    verify(solaHelper, times(3)).fetchFXRate(anyInt(), any(LocalDate.class));
-    verify(fxRateHelper, times(3)).processFxRateData(anyList(), any(Meta.class));
-    verify(exceptionHandler, times(1)).generateAlerts();
+public class IndexMasterCSVBeanTest {
+  
+  // Test when both objects are null
+  @Test
+  public void testEqualsNullObjects() {
+    IndexMasterCSVBean obj1 = null;
+    IndexMasterCSVBean obj2 = null;
+    assertTrue(obj1.equals(obj2));
+  }
+  
+  // Test when one object is null and the other is not
+  @Test
+  public void testEqualsOneNullObject() {
+    IndexMasterCSVBean obj1 = new IndexMasterCSVBean();
+    IndexMasterCSVBean obj2 = null;
+    assertFalse(obj1.equals(obj2));
+  }
+  
+  // Test when the two objects have different classes
+  @Test
+  public void testEqualsDifferentClasses() {
+    IndexMasterCSVBean obj1 = new IndexMasterCSVBean();
+    Object obj2 = new Object();
+    assertFalse(obj1.equals(obj2));
+  }
+  
+  // Test when all instance variables are equal
+  @Test
+  public void testEqualsEqualObjects() {
+    IndexMasterCSVBean obj1 = new IndexMasterCSVBean();
+    obj1.setAsAtDate("2023-03-05");
+    obj1.setIndexMasterType("type");
+    obj1.setIsOpen(true);
+    obj1.setSecurityId(123);
+    
+    IndexMasterCSVBean obj2 = new IndexMasterCSVBean();
+    obj2.setAsAtDate("2023-03-05");
+    obj2.setIndexMasterType("type");
+    obj2.setIsOpen(true);
+    obj2.setSecurityId(123);
+    
+    assertTrue(obj1.equals(obj2));
+  }
+  
+  // Test when one instance variable is not equal
+  @Test
+  public void testEqualsDifferentInstanceVariable() {
+    IndexMasterCSVBean obj1 = new IndexMasterCSVBean();
+    obj1.setAsAtDate("2023-03-05");
+    obj1.setIndexMasterType("type");
+    obj1.setIsOpen(true);
+    obj1.setSecurityId(123);
+    
+    IndexMasterCSVBean obj2 = new IndexMasterCSVBean();
+    obj2.setAsAtDate("2023-03-06"); // different date
+    obj2.setIndexMasterType("type");
+    obj2.setIsOpen(true);
+    obj2.setSecurityId(123);
+    
+    assertFalse(obj1.equals(obj2));
+  }
 }
 
