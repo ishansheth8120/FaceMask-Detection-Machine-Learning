@@ -1,73 +1,58 @@
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+@RunWith(MockitoJUnitRunner.class)
+public class NexusIndexMasterCleanUpControllerTest {
 
-import java.util.Arrays;
-import java.util.List;
+    @InjectMocks
+    private NexusIndexMasterCleanUpController controller;
 
-import static .mockito.Mockito.*;
+    @Mock
+    private NexusMasterHelper nxsMasterHelper;
 
-public class TableTruncateTest {
-  
-  @Mock
-  private NxsMasterHelper nxsMasterHelper;
-  
-  @Mock
-  private ExceptionHandler exceptionHandler;
-  
-  private TableTruncate tableTruncate;
-  
-  @Before
-  public void setUp() {
-    MockitoAnnotations.initMocks(this);
-    tableTruncate = new TableTruncate(nxsMasterHelper, exceptionHandler);
-  }
-  
-  // Test when list is null
-  @Test(expected = IllegalArgumentException.class)
-  public void testTruncateNullList() {
-    List<String> list = null;
-    tableTruncate.performTableTruncate(list);
-  }
-  
-  // Test when list is empty
-  @Test
-  public void testTruncateEmptyList() {
-    List<String> list = Arrays.asList();
-    tableTruncate.performTableTruncate(list);
-    verifyZeroInteractions(nxsMasterHelper);
-  }
-  
-  // Test when table is successfully truncated
-  @Test
-  public void testTruncateSuccess() {
-    List<String> list = Arrays.asList("table1", "table2");
-    
-    doNothing().when(nxsMasterHelper).performTruncateTable("table1");
-    doNothing().when(nxsMasterHelper).performTruncateTable("table2");
-    
-    tableTruncate.performTableTruncate(list);
-    
-    verify(nxsMasterHelper, times(1)).performTruncateTable("table1");
-    verify(nxsMasterHelper, times(1)).performTruncateTable("table2");
-    verifyZeroInteractions(exceptionHandler);
-  }
-  
-  // Test when an exception is thrown during truncate
-  @Test
-  public void testTruncateException() {
-    List<String> list = Arrays.asList("table1", "table2");
-    Exception ex = new RuntimeException("Test exception");
-    
-    doThrow(ex).when(nxsMasterHelper).performTruncateTable("table1");
-    doNothing().when(nxsMasterHelper).performTruncateTable("table2");
-    
-    tableTruncate.performTableTruncate(list);
-    
-    verify(nxsMasterHelper, times(1)).performTruncateTable("table1");
-    verify(nxsMasterHelper, times(1)).performTruncateTable("table2");
-    verify(exceptionHandler, times(1)).handleException("DBCleanup Table: table1", null, ex);
-  }
+    @Mock
+    private ExceptionHandler exceptionHandler;
+
+    @Mock
+    private Map<String, String> masterTableColumn;
+
+    @Mock
+    private Map<String, Integer> masterTableCleanup;
+
+    @Mock
+    private Map<String, Integer> masterTableInactiveRecCleanup;
+
+    @Test
+    public void testBeginProcess() throws Exception {
+        // Set up mock values for the @Value annotated fields using reflection
+        ReflectionTestUtils.setField(controller, "batchSize", 10);
+        ReflectionTestUtils.setField(controller, "masterTableColumn", masterTableColumn);
+        ReflectionTestUtils.setField(controller, "masterTableCleanup", masterTableCleanup);
+        ReflectionTestUtils.setField(controller, "masterTableInactiveRecCleanup", masterTableInactiveRecCleanup);
+
+        // Set up mock values for the nxsMasterHelper and exceptionHandler dependencies
+        doNothing().when(nxsMasterHelper).performTableCleanUp(anyInt(), anyString(), anyString(), anyInt());
+        doNothing().when(nxsMasterHelper).performTableInactiveRecCleanUp(anyInt(), anyString(), anyString(), anyInt());
+        doNothing().when(controller).performTableTruncate(anyList());
+        doNothing().when(exceptionHandler).handleException(anyString(), any(), any());
+
+        // Set up mock values for the cleanup maps
+        Map<String, String> masterTableColumnMock = new HashMap<>();
+        masterTableColumnMock.put("table1", "column1");
+        masterTableColumnMock.put("table2", "column2");
+        Map<String, Integer> masterTableCleanupMock = new HashMap<>();
+        masterTableCleanupMock.put("table1", 30);
+        masterTableCleanupMock.put("table2", 60);
+        Map<String, Integer> masterTableInactiveRecCleanupMock = new HashMap<>();
+        masterTableInactiveRecCleanupMock.put("table3", 90);
+
+        when(masterTableColumn.entrySet()).thenReturn(masterTableColumnMock.entrySet());
+        when(masterTableCleanup.entrySet()).thenReturn(masterTableCleanupMock.entrySet());
+        when(masterTableInactiveRecCleanup.entrySet()).thenReturn(masterTableInactiveRecCleanupMock.entrySet());
+
+        // Call the method being tested
+        controller.beginProcess();
+
+        // Verify that the cleanup methods were called with the expected arguments
+        verify(nxsMasterHelper).performTableCleanUp(10, "table1", "column1", 30);
+        verify(nxsMasterHelper).performTableCleanUp(10, "table2", "column2", 60);
+        verify(nxsMasterHelper).performTableInactiveRecCleanUp(10, "table3", null, 90);
+    }
 }
