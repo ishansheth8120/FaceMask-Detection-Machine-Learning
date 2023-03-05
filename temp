@@ -1,65 +1,73 @@
 import static org.junit.Assert.*;
+import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-public class IndexMasterCSVBeanTest {
+import java.util.Arrays;
+import java.util.List;
+
+import static org.mockito.Mockito.*;
+
+public class TableTruncateTest {
   
-  // Test when both objects are null
-  @Test
-  public void testEqualsNullObjects() {
-    IndexMasterCSVBean obj1 = null;
-    IndexMasterCSVBean obj2 = null;
-    assertTrue(obj1.equals(obj2));
+  @Mock
+  private NxsMasterHelper nxsMasterHelper;
+  
+  @Mock
+  private ExceptionHandler exceptionHandler;
+  
+  private TableTruncate tableTruncate;
+  
+  @Before
+  public void setUp() {
+    MockitoAnnotations.initMocks(this);
+    tableTruncate = new TableTruncate(nxsMasterHelper, exceptionHandler);
   }
   
-  // Test when one object is null and the other is not
-  @Test
-  public void testEqualsOneNullObject() {
-    IndexMasterCSVBean obj1 = new IndexMasterCSVBean();
-    IndexMasterCSVBean obj2 = null;
-    assertFalse(obj1.equals(obj2));
+  // Test when list is null
+  @Test(expected = IllegalArgumentException.class)
+  public void testTruncateNullList() {
+    List<String> list = null;
+    tableTruncate.performTableTruncate(list);
   }
   
-  // Test when the two objects have different classes
+  // Test when list is empty
   @Test
-  public void testEqualsDifferentClasses() {
-    IndexMasterCSVBean obj1 = new IndexMasterCSVBean();
-    Object obj2 = new Object();
-    assertFalse(obj1.equals(obj2));
+  public void testTruncateEmptyList() {
+    List<String> list = Arrays.asList();
+    tableTruncate.performTableTruncate(list);
+    verifyZeroInteractions(nxsMasterHelper);
   }
   
-  // Test when all instance variables are equal
+  // Test when table is successfully truncated
   @Test
-  public void testEqualsEqualObjects() {
-    IndexMasterCSVBean obj1 = new IndexMasterCSVBean();
-    obj1.setAsAtDate("2023-03-05");
-    obj1.setIndexMasterType("type");
-    obj1.setIsOpen(true);
-    obj1.setSecurityId(123);
+  public void testTruncateSuccess() {
+    List<String> list = Arrays.asList("table1", "table2");
     
-    IndexMasterCSVBean obj2 = new IndexMasterCSVBean();
-    obj2.setAsAtDate("2023-03-05");
-    obj2.setIndexMasterType("type");
-    obj2.setIsOpen(true);
-    obj2.setSecurityId(123);
+    doNothing().when(nxsMasterHelper).performTruncateTable("table1");
+    doNothing().when(nxsMasterHelper).performTruncateTable("table2");
     
-    assertTrue(obj1.equals(obj2));
+    tableTruncate.performTableTruncate(list);
+    
+    verify(nxsMasterHelper, times(1)).performTruncateTable("table1");
+    verify(nxsMasterHelper, times(1)).performTruncateTable("table2");
+    verifyZeroInteractions(exceptionHandler);
   }
   
-  // Test when one instance variable is not equal
+  // Test when an exception is thrown during truncate
   @Test
-  public void testEqualsDifferentInstanceVariable() {
-    IndexMasterCSVBean obj1 = new IndexMasterCSVBean();
-    obj1.setAsAtDate("2023-03-05");
-    obj1.setIndexMasterType("type");
-    obj1.setIsOpen(true);
-    obj1.setSecurityId(123);
+  public void testTruncateException() {
+    List<String> list = Arrays.asList("table1", "table2");
+    Exception ex = new RuntimeException("Test exception");
     
-    IndexMasterCSVBean obj2 = new IndexMasterCSVBean();
-    obj2.setAsAtDate("2023-03-06"); // different date
-    obj2.setIndexMasterType("type");
-    obj2.setIsOpen(true);
-    obj2.setSecurityId(123);
+    doThrow(ex).when(nxsMasterHelper).performTruncateTable("table1");
+    doNothing().when(nxsMasterHelper).performTruncateTable("table2");
     
-    assertFalse(obj1.equals(obj2));
+    tableTruncate.performTableTruncate(list);
+    
+    verify(nxsMasterHelper, times(1)).performTruncateTable("table1");
+    verify(nxsMasterHelper, times(1)).performTruncateTable("table2");
+    verify(exceptionHandler, times(1)).handleException("DBCleanup Table: table1", null, ex);
   }
 }
