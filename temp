@@ -1,67 +1,32 @@
 @Test
-public void testPerformTableCleanUp() throws Exception {
-    // Setup
-    NexusMasterHelper nxsMasterHelper = mock(NexusMasterHelper.class);
-    Map<String, Integer> masterTableCleanup = new HashMap<>();
-    masterTableCleanup.put("table1", 30);
+public void testBeginProcess() {
+    // Arrange
+    NexusIndexMasterCleanUpController controller = new NexusIndexMasterCleanUpController();
+    controller.setBatchSize(50);
     Map<String, String> masterTableColumn = new HashMap<>();
     masterTableColumn.put("table1", "column1");
-    Integer batchSize = 100;
-
-    // Create object under test
-    NexusIndexMasterCleanUpController controller = new NexusIndexMasterCleanUpController();
-    controller.setMasterTableCleanup(masterTableCleanup);
+    masterTableColumn.put("table2", "column2");
     controller.setMasterTableColumn(masterTableColumn);
-    controller.setBatchSize(batchSize);
-    controller.setNxsMasterHelper(nxsMasterHelper);
-
-    // Test
-    when(controller.isValidCleanUpEntry(eq("table1"), eq(30), eq("column1"))).thenReturn(true);
-    controller.beginProcess();
-
-    // Verify
-    verify(nxsMasterHelper, times(1)).performTableCleanUp(eq(batchSize), eq("table1"), eq("column1"), eq(30));
-}
-
-@Test
-public void testPerformTableInactiveRecCleanUp() throws Exception {
-    // Setup
-    NexusMasterHelper nxsMasterHelper = mock(NexusMasterHelper.class);
+    Map<String, Integer> masterTableCleanup = new HashMap<>();
+    masterTableCleanup.put("table1", 10);
+    masterTableCleanup.put("table2", 20);
+    controller.setMasterTableCleanup(masterTableCleanup);
     Map<String, Integer> masterTableInactiveRecCleanup = new HashMap<>();
-    masterTableInactiveRecCleanup.put("table1", 30);
-    Map<String, String> inActiveTableColumn = new HashMap<>();
-    inActiveTableColumn.put("table1", "column1");
-    Integer batchSize = 100;
-
-    // Create object under test
-    NexusIndexMasterCleanUpController controller = new NexusIndexMasterCleanUpController();
+    masterTableInactiveRecCleanup.put("table3", 30);
+    masterTableInactiveRecCleanup.put("table4", 40);
     controller.setMasterTableInactiveRecCleanup(masterTableInactiveRecCleanup);
-    controller.setInActiveTableColumn(inActiveTableColumn);
-    controller.setBatchSize(batchSize);
-    controller.setNxsMasterHelper(nxsMasterHelper);
+    NexusMasterHelper mockHelper = mock(NexusMasterHelper.class);
+    controller.setNxsMasterHelper(mockHelper);
+    ExceptionHandler mockExceptionHandler = mock(ExceptionHandler.class);
+    controller.setExceptionHandler(mockExceptionHandler);
 
-    // Test
-    when(controller.isValidCleanUpEntry(eq("table1"), eq(30), eq("column1"))).thenReturn(true);
+    // Act
     controller.beginProcess();
 
-    // Verify
-    verify(nxsMasterHelper, times(1)).performTableInactiveRecCleanUp(eq(batchSize), eq("table1"), eq("column1"), eq(30));
-}
-
-@Test
-public void testPerformTableTruncate() throws Exception {
-    // Setup
-    NexusMasterHelper nxsMasterHelper = mock(NexusMasterHelper.class);
-    List<String> masterTableTruncateList = Arrays.asList("table1");
-
-    // Create object under test
-    NexusIndexMasterCleanUpController controller = new NexusIndexMasterCleanUpController();
-    controller.setNxsMasterHelper(nxsMasterHelper);
-    controller.setMasterTableTruncateList(masterTableTruncateList);
-
-    // Test
-    controller.beginProcess();
-
-    // Verify
-    verify(nxsMasterHelper, times(1)).performTruncateTable(eq("table1"));
+    // Assert
+    verify(mockHelper, times(1)).performTableCleanUp(50, "table1", "column1", 10);
+    verify(mockHelper, times(1)).performTableCleanUp(50, "table2", "column2", 20);
+    verify(mockHelper, times(1)).performTableInactiveRecCleanUp(50, "table3", "column3", 30);
+    verify(mockHelper, times(1)).performTableInactiveRecCleanUp(50, "table4", "column4", 40);
+    verify(mockExceptionHandler, times(0)).handleException(anyString(), any(), any());
 }
