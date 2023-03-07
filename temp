@@ -1,32 +1,58 @@
 @Test
-public void testBeginProcess() {
+public void testPopulateFxRateDataWithValidInput() {
     // Arrange
-    NexusIndexMasterCleanUpController controller = new NexusIndexMasterCleanUpController();
-    controller.setBatchSize(50);
-    Map<String, String> masterTableColumn = new HashMap<>();
-    masterTableColumn.put("table1", "column1");
-    masterTableColumn.put("table2", "column2");
-    controller.setMasterTableColumn(masterTableColumn);
-    Map<String, Integer> masterTableCleanup = new HashMap<>();
-    masterTableCleanup.put("table1", 10);
-    masterTableCleanup.put("table2", 20);
-    controller.setMasterTableCleanup(masterTableCleanup);
-    Map<String, Integer> masterTableInactiveRecCleanup = new HashMap<>();
-    masterTableInactiveRecCleanup.put("table3", 30);
-    masterTableInactiveRecCleanup.put("table4", 40);
-    controller.setMasterTableInactiveRecCleanup(masterTableInactiveRecCleanup);
-    NexusMasterHelper mockHelper = mock(NexusMasterHelper.class);
-    controller.setNxsMasterHelper(mockHelper);
-    ExceptionHandler mockExceptionHandler = mock(ExceptionHandler.class);
-    controller.setExceptionHandler(mockExceptionHandler);
+    List<Result> fxRateData = Arrays.asList(
+        new Result("USD", "EUR", "1.2345"),
+        new Result("GBP", "USD", "1.5678")
+    );
+    String asAtDate = "2022-03-05";
+    Long rateSetId = 123L;
+    FxRateEntityEntityHelper helper = new FxRateEntityEntityHelper();
 
     // Act
-    controller.beginProcess();
+    List<FxRateEntity> fxRateEntities = helper.populateFxRateData(fxRateData, asAtDate, rateSetId);
 
     // Assert
-    verify(mockHelper, times(1)).performTableCleanUp(50, "table1", "column1", 10);
-    verify(mockHelper, times(1)).performTableCleanUp(50, "table2", "column2", 20);
-    verify(mockHelper, times(1)).performTableInactiveRecCleanUp(50, "table3", "column3", 30);
-    verify(mockHelper, times(1)).performTableInactiveRecCleanUp(50, "table4", "column4", 40);
-    verify(mockExceptionHandler, times(0)).handleException(anyString(), any(), any());
+    assertEquals(2, fxRateEntities.size());
+    assertEquals("USD", fxRateEntities.get(0).getFromCurrency());
+    assertEquals("EUR", fxRateEntities.get(0).getToCurrency());
+    assertEquals(new BigDecimal("1.2345"), fxRateEntities.get(0).getFxRate());
+    assertEquals(LocalDate.parse(asAtDate), fxRateEntities.get(0).getFxRateDate());
+    assertEquals(rateSetId, fxRateEntities.get(0).getFxRateSetId());
+    assertEquals("GBP", fxRateEntities.get(1).getFromCurrency());
+    assertEquals("USD", fxRateEntities.get(1).getToCurrency());
+    assertEquals(new BigDecimal("1.5678"), fxRateEntities.get(1).getFxRate());
+    assertEquals(LocalDate.parse(asAtDate), fxRateEntities.get(1).getFxRateDate());
+    assertEquals(rateSetId, fxRateEntities.get(1).getFxRateSetId());
+}
+
+
+
+@Test
+public void testPopulateFxRateDataWithEmptyInput() {
+    // Arrange
+    List<Result> fxRateData = Collections.emptyList();
+    String asAtDate = "2022-03-05";
+    Long rateSetId = 123L;
+    FxRateEntityEntityHelper helper = new FxRateEntityEntityHelper();
+
+    // Act
+    List<FxRateEntity> fxRateEntities = helper.populateFxRateData(fxRateData, asAtDate, rateSetId);
+
+    // Assert
+    assertTrue(fxRateEntities.isEmpty());
+}
+
+
+
+@Test(expected = NullPointerException.class)
+public void testPopulateFxRateDataWithNullInput() {
+    // Arrange
+    List<Result> fxRateData = null;
+    String asAtDate = "2022-03-05";
+    Long rateSetId = 123L;
+    FxRateEntityEntityHelper helper = new FxRateEntityEntityHelper();
+
+    // Act
+    helper.populateFxRateData(fxRateData, asAtDate, rateSetId);
 }
