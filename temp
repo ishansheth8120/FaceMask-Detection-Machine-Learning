@@ -1,58 +1,49 @@
-@Test
-public void testPopulateFxRateDataWithValidInput() {
-    // Arrange
-    List<Result> fxRateData = Arrays.asList(
-        new Result("USD", "EUR", "1.2345"),
-        new Result("GBP", "USD", "1.5678")
-    );
-    String asAtDate = "2022-03-05";
-    Long rateSetId = 123L;
-    FxRateEntityEntityHelper helper = new FxRateEntityEntityHelper();
+import static org.mockito.Mockito.*;
 
-    // Act
-    List<FxRateEntity> fxRateEntities = helper.populateFxRateData(fxRateData, asAtDate, rateSetId);
+import java.util.ArrayList;
+import java.util.List;
 
-    // Assert
-    assertEquals(2, fxRateEntities.size());
-    assertEquals("USD", fxRateEntities.get(0).getFromCurrency());
-    assertEquals("EUR", fxRateEntities.get(0).getToCurrency());
-    assertEquals(new BigDecimal("1.2345"), fxRateEntities.get(0).getFxRate());
-    assertEquals(LocalDate.parse(asAtDate), fxRateEntities.get(0).getFxRateDate());
-    assertEquals(rateSetId, fxRateEntities.get(0).getFxRateSetId());
-    assertEquals("GBP", fxRateEntities.get(1).getFromCurrency());
-    assertEquals("USD", fxRateEntities.get(1).getToCurrency());
-    assertEquals(new BigDecimal("1.5678"), fxRateEntities.get(1).getFxRate());
-    assertEquals(LocalDate.parse(asAtDate), fxRateEntities.get(1).getFxRateDate());
-    assertEquals(rateSetId, fxRateEntities.get(1).getFxRateSetId());
-}
+import org.junit.Before;
+import org.junit.Test;
+import org.mockito.Mock;
 
+public class ProcessFxRateDataTest {
 
-
-@Test
-public void testPopulateFxRateDataWithEmptyInput() {
-    // Arrange
-    List<Result> fxRateData = Collections.emptyList();
-    String asAtDate = "2022-03-05";
-    Long rateSetId = 123L;
-    FxRateEntityEntityHelper helper = new FxRateEntityEntityHelper();
-
-    // Act
-    List<FxRateEntity> fxRateEntities = helper.populateFxRateData(fxRateData, asAtDate, rateSetId);
-
-    // Assert
-    assertTrue(fxRateEntities.isEmpty());
-}
-
-
-
-@Test(expected = NullPointerException.class)
-public void testPopulateFxRateDataWithNullInput() {
-    // Arrange
-    List<Result> fxRateData = null;
-    String asAtDate = "2022-03-05";
-    Long rateSetId = 123L;
-    FxRateEntityEntityHelper helper = new FxRateEntityEntityHelper();
-
-    // Act
-    helper.populateFxRateData(fxRateData, asAtDate, rateSetId);
+    @Mock
+    private IFxRateDao iFxRateDao;
+    @Mock
+    private FxRateEntityEntityHelper fxRateEntityEntityHelper;
+    @Mock
+    private Meta meta;
+    @Mock
+    private Params params;
+    
+    private ProcessFxRateData processFxRateData;
+    private List<Result> fxRateData;
+    
+    @Before
+    public void setUp() {
+        iFxRateDao = mock(IFxRateDao.class);
+        fxRateEntityEntityHelper = mock(FxRateEntityEntityHelper.class);
+        meta = mock(Meta.class);
+        params = mock(Params.class);
+        when(meta.getParams()).thenReturn(params);
+        when(params.getAsAt()).thenReturn("2022-01-01");
+        when(params.getRateSetId()).thenReturn("12345");
+        fxRateData = new ArrayList<Result>();
+        processFxRateData = new ProcessFxRateData(iFxRateDao, fxRateEntityEntityHelper);
+    }
+    
+    @Test
+    public void testProcessFxRateData() {
+        List<FxRateEntity> fxRateEntitiesData = new ArrayList<FxRateEntity>();
+        fxRateEntitiesData.add(new FxRateEntity("USD", "EUR", 1.23));
+        when(fxRateEntityEntityHelper.populateFxRateData(eq(fxRateData), anyString(), anyString())).thenReturn(fxRateEntitiesData);
+        
+        processFxRateData.processFxRateData(fxRateData, meta);
+        
+        verify(fxRateEntityEntityHelper, times(1)).populateFxRateData(eq(fxRateData), anyString(), anyString());
+        verify(iFxRateDao, times(1)).insertFxRateData(eq(fxRateEntitiesData));
+    }
+    
 }
