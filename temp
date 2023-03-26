@@ -1,49 +1,31 @@
-import static org.mockito.Mockito.*;
+from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure
+from bson.json_util import loads
+from datetime import datetime
 
-import java.util.ArrayList;
-import java.util.List;
+user = ""
+password = ""
+dbname = ""
+host = ""
+port = 27017
+addresses = [(host, port)]
 
-import org.junit.Before;
-import org.junit.Test;
-import org.mockito.Mock;
-
-public class ProcessFxRateDataTest {
-
-    @Mock
-    private IFxRateDao iFxRateDao;
-    @Mock
-    private FxRateEntityEntityHelper fxRateEntityEntityHelper;
-    @Mock
-    private Meta meta;
-    @Mock
-    private Params params;
-    
-    private ProcessFxRateData processFxRateData;
-    private List<Result> fxRateData;
-    
-    @Before
-    public void setUp() {
-        iFxRateDao = mock(IFxRateDao.class);
-        fxRateEntityEntityHelper = mock(FxRateEntityEntityHelper.class);
-        meta = mock(Meta.class);
-        params = mock(Params.class);
-        when(meta.getParams()).thenReturn(params);
-        when(params.getAsAt()).thenReturn("2022-01-01");
-        when(params.getRateSetId()).thenReturn("12345");
-        fxRateData = new ArrayList<Result>();
-        processFxRateData = new ProcessFxRateData(iFxRateDao, fxRateEntityEntityHelper);
-    }
-    
-    @Test
-    public void testProcessFxRateData() {
-        List<FxRateEntity> fxRateEntitiesData = new ArrayList<FxRateEntity>();
-        fxRateEntitiesData.add(new FxRateEntity("USD", "EUR", 1.23));
-        when(fxRateEntityEntityHelper.populateFxRateData(eq(fxRateData), anyString(), anyString())).thenReturn(fxRateEntitiesData);
-        
-        processFxRateData.processFxRateData(fxRateData, meta);
-        
-        verify(fxRateEntityEntityHelper, times(1)).populateFxRateData(eq(fxRateData), anyString(), anyString());
-        verify(iFxRateDao, times(1)).insertFxRateData(eq(fxRateEntitiesData));
-    }
-    
-}
+try:
+    client = MongoClient(addresses, username=user, password=password, authSource=dbname)
+    db = client[dbname]
+    collection = db[""]
+    filePath = ""
+    with open(filePath, "rb") as jsonFile:
+        jsonData = jsonFile.read()
+        doc = loads(jsonData)
+        startTime = datetime.now()
+        result = collection.insert_one(doc)
+        endTime = datetime.now()
+        timeTaken = (endTime - startTime).total_seconds() * 1000
+        bytesPerMillisecond = len(jsonData) / timeTaken
+        print("Bytes per millisecond:", bytesPerMillisecond)
+        print("Time taken:", timeTaken)
+except ConnectionFailure as e:
+    print("Could not connect to server:", e)
+except Exception as ex:
+    print("Error:", ex)
