@@ -1,31 +1,49 @@
-from pymongo import MongoClient
-from pymongo.errors import ConnectionFailure
-from bson.json_util import loads
-from datetime import datetime
-
-user = ""
-password = ""
-dbname = ""
-host = ""
-port = 27017
-addresses = [(host, port)]
-
-try:
-    client = MongoClient(addresses, username=user, password=password, authSource=dbname)
-    db = client[dbname]
-    collection = db[""]
-    filePath = ""
-    with open(filePath, "rb") as jsonFile:
-        jsonData = jsonFile.read()
-        doc = loads(jsonData)
-        startTime = datetime.now()
-        result = collection.insert_one(doc)
-        endTime = datetime.now()
-        timeTaken = (endTime - startTime).total_seconds() * 1000
-        bytesPerMillisecond = len(jsonData) / timeTaken
-        print("Bytes per millisecond:", bytesPerMillisecond)
-        print("Time taken:", timeTaken)
-except ConnectionFailure as e:
-    print("Could not connect to server:", e)
-except Exception as ex:
-    print("Error:", ex)
+SELECT 
+    etf.etf_id,
+    etf.etf_name,
+    etf.etf_type,
+    etf.ASATDATE,
+    etf.SECURITYID,
+    (
+        SELECT
+            etf_positions.position_id AS 'position_id',
+            etf_positions.position_name AS 'position_name',
+            -- Add other columns from TBL_ETFPOSITIONS table as needed
+        FROM
+            MIDAS.TBL_ETFPOSITIONS AS etf_positions
+        WHERE
+            etf.etf_id = etf_positions.etf_id
+            AND etf.ASATDATE = etf_positions.ASATDATE
+        FOR JSON PATH
+    ) AS 'etf_positions',
+    (
+        SELECT
+            etf_basket_positions.basket_position_id AS 'basket_position_id',
+            etf_basket_positions.basket_position_name AS 'basket_position_name',
+            -- Add other columns from TBL_ETFBASKETPOSITIONS table as needed
+        FROM
+            MIDAS.TBL_ETFBASKETPOSITIONS AS etf_basket_positions
+        WHERE
+            etf.etf_id = etf_basket_positions.etf_id
+            AND etf.ASATDATE = etf_basket_positions.ASATDATE
+        FOR JSON PATH
+    ) AS 'etf_basket_positions',
+    (
+        SELECT
+            etf_constituents.constituent_id AS 'constituent_id',
+            etf_constituents.constituent_name AS 'constituent_name',
+            -- Add other columns from TBL_ETFCONSTITUENTS table as needed
+        FROM
+            MIDAS.TBL_ETFCONSTITUENTS AS etf_constituents
+        WHERE
+            etf.etf_id = etf_constituents.etf_id
+            AND etf.ASATDATE = etf_constituents.ASATDATE
+        FOR JSON PATH
+    ) AS 'etf_constituents'
+FROM
+    MIDAS.TBL_ETF AS etf
+WHERE
+    etf.SECURITYID = 745749
+    AND etf.ASATDATE = '2023-04-12'
+ORDER BY
+    etf.ASATDATE DESC;
