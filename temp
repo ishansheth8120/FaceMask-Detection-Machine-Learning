@@ -1,49 +1,12 @@
 SELECT 
-    etf.etf_id,
-    etf.etf_name,
-    etf.etf_type,
-    etf.ASATDATE,
-    etf.SECURITYID,
-    (
-        SELECT
-            etf_positions.position_id AS 'position_id',
-            etf_positions.position_name AS 'position_name',
-            -- Add other columns from TBL_ETFPOSITIONS table as needed
-        FROM
-            MIDAS.TBL_ETFPOSITIONS AS etf_positions
-        WHERE
-            etf.etf_id = etf_positions.etf_id
-            AND etf.ASATDATE = etf_positions.ASATDATE
-        FOR JSON PATH
-    ) AS 'etf_positions',
-    (
-        SELECT
-            etf_basket_positions.basket_position_id AS 'basket_position_id',
-            etf_basket_positions.basket_position_name AS 'basket_position_name',
-            -- Add other columns from TBL_ETFBASKETPOSITIONS table as needed
-        FROM
-            MIDAS.TBL_ETFBASKETPOSITIONS AS etf_basket_positions
-        WHERE
-            etf.etf_id = etf_basket_positions.etf_id
-            AND etf.ASATDATE = etf_basket_positions.ASATDATE
-        FOR JSON PATH
-    ) AS 'etf_basket_positions',
-    (
-        SELECT
-            etf_constituents.constituent_id AS 'constituent_id',
-            etf_constituents.constituent_name AS 'constituent_name',
-            -- Add other columns from TBL_ETFCONSTITUENTS table as needed
-        FROM
-            MIDAS.TBL_ETFCONSTITUENTS AS etf_constituents
-        WHERE
-            etf.etf_id = etf_constituents.etf_id
-            AND etf.ASATDATE = etf_constituents.ASATDATE
-        FOR JSON PATH
-    ) AS 'etf_constituents'
-FROM
-    MIDAS.TBL_ETF AS etf
-WHERE
-    etf.SECURITYID = 745749
-    AND etf.ASATDATE = '2023-04-12'
-ORDER BY
-    etf.ASATDATE DESC;
+    etf.SECURITYID, 
+    etf.ASATDATE, 
+    SUM(etf_positions.POSITION) AS POSITION, 
+    SUM(etf_basket_postions.AMOUNT) AS AMOUNT, 
+    GROUP_CONCAT(etf_constituents.CONSTITUENTID) AS CONSTITUENTIDS
+FROM MIDAS.TBL_ETF AS etf 
+LEFT JOIN MIDAS.TBL_ETFPOSITIONS AS etf_positions ON etf.SECURITYID=etf_positions.SECURITYID AND etf.ASATDATE=etf_positions.ASATDATE
+LEFT JOIN MIDAS.TBL_ETFBASKETPOSITIONS AS etf_basket_postions ON etf.SECURITYID=etf_basket_postions.SECURITYID AND etf.ASATDATE=etf_basket_postions.ASATDATE
+LEFT JOIN MIDAS.TBL_ETFCONSTITUENTS AS etf_constituents ON etf.SECURITYID=etf_constituents.SECURITYID AND etf.ASATDATE=etf_constituents.ASATDATE
+WHERE etf.SECURITYID='745749' AND etf.ASATDATE='2023-04-12'
+GROUP BY etf.SECURITYID, etf.ASATDATE;
