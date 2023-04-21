@@ -1,19 +1,60 @@
-SELECT *
-FROM (
-    SELECT 'ETF' AS source, *
-    FROM MIDAS.TBL_ETF 
-    WHERE SECURITYID = '745749' AND ASATDATE = '2023-04-12' 
-    UNION ALL
-    SELECT 'ETF_POSITIONS' AS source, *
-    FROM MIDAS.TBL_ETFPOSITIONS 
-    WHERE SECURITYID = '745749' AND ASATDATE = '2023-04-12' 
-    UNION ALL
-    SELECT 'ETF_BASKET_POSITIONS' AS source, *
-    FROM MIDAS.TBL_ETFBASKETPOSITIONS 
-    WHERE SECURITYID = '745749' AND ASATDATE = '2023-04-12' 
-    UNION ALL
-    SELECT 'ETF_CONSTITUENTS' AS source, *
-    FROM MIDAS.TBL_ETFCONSTITUENTS 
-    WHERE SECURITYID = '745749' AND ASATDATE = '2023-04-12' 
-) AS combined
-ORDER BY ASATDATE DESC;
+import java.sql.*;
+import com.google.gson.*;
+import com.mongodb.client.*;
+import org.bson.Document;
+
+public class Main {
+    public static void main(String[] args) {
+        String sql = "SELECT * FROM ETF";
+        String connectionString = "jdbc:sqlserver://localhost:1433;databaseName=mydatabase;user=myusername;password=mypassword";
+        String mongoConnectionString = "mongodb://localhost:27017";
+        String databaseName = "myMongoDatabase";
+        String collectionName = "etfs";
+
+        try (Connection conn = DriverManager.getConnection(connectionString);
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql);
+             MongoClient mongoClient = MongoClients.create(mongoConnectionString);
+             MongoDatabase mongoDatabase = mongoClient.getDatabase(databaseName)) {
+
+            // Create a new JSON object to store the ETF data
+            JsonObject etfJson = new JsonObject();
+
+            while (rs.next()) {
+                // Add the scalar values to the JSON object
+                etfJson.addProperty("ETF_ID", rs.getInt("ETF_ID"));
+                etfJson.addProperty("ETF_NAME", rs.getString("ETF_NAME"));
+                etfJson.addProperty("ETF_TYPE", rs.getString("ETF_TYPE"));
+                etfJson.addProperty("ASATDATE", rs.getDate("ASATDATE").toString());
+                etfJson.addProperty("SECURITYID", rs.getString("SECURITYID"));
+
+                // Create JSON arrays for the etf_positions, etf_basket_positions, and etf_constituents
+                JsonArray etfPositionsJson = new JsonArray();
+                JsonArray etfBasketPositionsJson = new JsonArray();
+                JsonArray etfConstituentsJson = new JsonArray();
+
+                // TODO: Fetch the etf_positions, etf_basket_positions, and etf_constituents from SQL Server and add them to the JSON arrays
+
+                // Add the etf_positions JSON array to the main ETF JSON object
+                etfJson.add("etf_positions", etfPositionsJson);
+
+                // Add the etf_basket_positions JSON array to the main ETF JSON object
+                etfJson.add("etf_basket_positions", etfBasketPositionsJson);
+
+                // Add the etf_constituents JSON array to the main ETF JSON object
+                etfJson.add("etf_constituents", etfConstituentsJson);
+
+                // Convert the JSON object to a string
+                String json = new Gson().toJson(etfJson);
+
+                // Insert the JSON object into MongoDB
+                Document document = Document.parse(json);
+                MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
+                collection.insertOne(document);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
