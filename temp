@@ -15,3 +15,68 @@ This is a Java program that retrieves data from a SQL Server database, processes
 7. Insertion of data into MongoDB: The document is then inserted into the MongoDB collection using the insertOne() method. Alternatively, the document can be inserted in bulk using the bulkWrite() method.
 
 Overall, this code is a simple example of how to transfer data from a SQL Server database to a MongoDB collection using Java.
+
+
+
+
+
+Sure, here are the bulleted points to explain the provided code:
+
+Main method:
+- Declares and initializes variables for MongoDB connection parameters.
+- Creates a list of server addresses for MongoDB connection.
+- Creates a MongoCredential object with the provided username, password, and database name.
+- Creates a MongoClient object with the server addresses and credential.
+- Gets the MongoDB database with the provided database name.
+- Drops a MongoDB collection named "ETFSOLA_Resp".
+- Declares and initializes variables for SQL Server connection parameters.
+- Creates a JsonObject to store the combined ETF data.
+- Constructs an SQL query to retrieve distinct security IDs and ASAT dates from a table named "MIDAS.TBL_ETFPOSITIONS".
+- Initializes lists to store retrieved security IDs and ASAT dates.
+- Creates a database connection with the provided SQL Server URL, username, and password.
+- Executes the SQL query to retrieve security IDs and ASAT dates and stores them in their respective lists.
+- Sets the number of threads and batch size for processing the retrieved security IDs.
+- Creates a fixed thread pool executor service.
+- Divides the security IDs and ASAT dates into batches and submits them to the executor service for processing.
+- Shuts down the executor service and waits for all threads to finish.
+- Catches and throws exceptions if any occur.
+
+RetrieveETFFromMongo method:
+- Gets all documents from a MongoDB collection named "ETFSOLA_Resp".
+
+processBatch method:
+- Accepts lists of security IDs, ASAT dates, and a database connection object as parameters.
+- Initializes variables to store ETF data.
+- Constructs an SQL query to retrieve ETF data from tables named "MIDAS.TBL_ETF" and "MIDAS.TBL_ETFPOSITIONS".
+- Executes the SQL queries and stores the retrieved data in their respective JSON objects.
+- Converts the JSON objects to JSON strings.
+- Creates a JsonObject to store the combined ETF data and adds the JSON strings to it.
+- Parses the JsonObject to a MongoDB Document object.
+- Creates a list of InsertOneModel objects with the Document.
+- Inserts the Document and bulk writes the InsertOneModel objects to the MongoDB collection.
+- Calculates the execution time for processing and retrieving data from MongoDB.
+
+
+Sure, here are the pointers as problem statements:
+
+1. Statistics and enhancing multithreading:
+- Generate statistics for data retrieval from SQL server and insertion into MongoDB
+- Collect data size statistics for data being processed
+- Generate stats on different methods and threads to analyze performance
+- Enhance multithreading to improve performance
+
+2. Inserting data on multiple dates:
+- Modify the code to allow inserting records on multiple dates
+- Ensure that records are inserted accurately based on the specified date
+
+3. Querying in MongoDB like SQL:
+- Convert SQL statements into MongoDB queries for data retrieval
+- Ensure that the converted queries work correctly and efficiently
+
+4. Data fetching based on dates:
+- Modify the code to allow fetching data based on dates
+- Ensure that the retrieved data is accurate and complete
+
+5. Overwriting updated data:
+- Check if the data has been updated by the vendor based on timestamps
+- Overwrite the data in MongoDB if the data is updated on the same date
