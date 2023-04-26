@@ -1,60 +1,17 @@
-import java.sql.*;
-import com.google.gson.*;
-import com.mongodb.client.*;
-import org.bson.Document;
+This is a Java program that retrieves data from a SQL Server database, processes it, and inserts it into a MongoDB collection. Let me go over the different parts of the code:
 
-public class Main {
-    public static void main(String[] args) {
-        String sql = "SELECT * FROM ETF";
-        String connectionString = "jdbc:sqlserver://localhost:1433;databaseName=mydatabase;user=myusername;password=mypassword";
-        String mongoConnectionString = "mongodb://localhost:27017";
-        String databaseName = "myMongoDatabase";
-        String collectionName = "etfs";
+1. Connection to MongoDB: The code establishes a connection to a MongoDB instance using the MongoClient class, providing the user credentials, the database name, the host, and the port number.
 
-        try (Connection conn = DriverManager.getConnection(connectionString);
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql);
-             MongoClient mongoClient = MongoClients.create(mongoConnectionString);
-             MongoDatabase mongoDatabase = mongoClient.getDatabase(databaseName)) {
+2. Collection initialization: The code initializes a MongoDB collection called "ETFSOLA_Resp" and then drops any existing data in the collection using the drop() method.
 
-            // Create a new JSON object to store the ETF data
-            JsonObject etfJson = new JsonObject();
+3. Connection to SQL Server: The code establishes a connection to a SQL Server instance using the DriverManager class and provides the URL, username, and password.
 
-            while (rs.next()) {
-                // Add the scalar values to the JSON object
-                etfJson.addProperty("ETF_ID", rs.getInt("ETF_ID"));
-                etfJson.addProperty("ETF_NAME", rs.getString("ETF_NAME"));
-                etfJson.addProperty("ETF_TYPE", rs.getString("ETF_TYPE"));
-                etfJson.addProperty("ASATDATE", rs.getDate("ASATDATE").toString());
-                etfJson.addProperty("SECURITYID", rs.getString("SECURITYID"));
+4. SQL query: The code retrieves data from a SQL Server table called "TBL_ETFPOSITIONS" that meets certain criteria.
 
-                // Create JSON arrays for the etf_positions, etf_basket_positions, and etf_constituents
-                JsonArray etfPositionsJson = new JsonArray();
-                JsonArray etfBasketPositionsJson = new JsonArray();
-                JsonArray etfConstituentsJson = new JsonArray();
+5. Processing data: The retrieved data is processed in batches. Each batch of data is processed in a separate thread using the ExecutorService class.
 
-                // TODO: Fetch the etf_positions, etf_basket_positions, and etf_constituents from SQL Server and add them to the JSON arrays
+6. MongoDB document creation: After processing, the data is converted to a JSON object and then to a MongoDB document using the Document.parse() method.
 
-                // Add the etf_positions JSON array to the main ETF JSON object
-                etfJson.add("etf_positions", etfPositionsJson);
+7. Insertion of data into MongoDB: The document is then inserted into the MongoDB collection using the insertOne() method. Alternatively, the document can be inserted in bulk using the bulkWrite() method.
 
-                // Add the etf_basket_positions JSON array to the main ETF JSON object
-                etfJson.add("etf_basket_positions", etfBasketPositionsJson);
-
-                // Add the etf_constituents JSON array to the main ETF JSON object
-                etfJson.add("etf_constituents", etfConstituentsJson);
-
-                // Convert the JSON object to a string
-                String json = new Gson().toJson(etfJson);
-
-                // Insert the JSON object into MongoDB
-                Document document = Document.parse(json);
-                MongoCollection<Document> collection = mongoDatabase.getCollection(collectionName);
-                collection.insertOne(document);
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-}
+Overall, this code is a simple example of how to transfer data from a SQL Server database to a MongoDB collection using Java.
