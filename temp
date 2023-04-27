@@ -80,3 +80,40 @@ Sure, here are the pointers as problem statements:
 5. Overwriting updated data:
 - Check if the data has been updated by the vendor based on timestamps
 - Overwrite the data in MongoDB if the data is updated on the same date
+
+
+When a financial institution receives the SOLA Markit index data, they might store it in their systems, usually in a database like MongoDB. The data can be updated by the vendor on a regular basis, like daily or weekly, with new values for existing indices or new indices altogether.
+
+When the vendor updates the data, they usually provide a timestamp indicating when the update occurred. The financial institution can use this timestamp to determine which data needs to be updated in their database. 
+
+For example, if the vendor updates the data every day and the financial institution stores the data by date, they can query the database to check if there is any data for the current date. If there is, they can compare the timestamp of the new data with the timestamp of the existing data to see if an update is needed. If the timestamps match, it means that the data has already been updated for the current date and does not need to be updated again. However, if the timestamps do not match, it means that the data has been updated and the financial institution should replace the old data with the new data.
+
+This process ensures that the financial institution always has the latest SOLA Markit index data in their systems, and that the data is accurate and up-to-date.
+
+Sure, here are more detailed explanations for each of the points mentioned:
+
+1. Statistics and enhancing multithreading:
+- As this code performs multiple operations such as data retrieval from SQL Server, insertion into MongoDB, and data size calculation, it would be helpful to generate statistics on different parts of the code to identify bottlenecks and optimize performance.
+- To achieve this, we can add counters to measure the number of records processed and the time taken for each operation. We can also measure the data size to identify the impact of the data on the system.
+- Additionally, we can implement multithreading to improve performance by processing multiple records simultaneously. However, we need to ensure that there are no race conditions or data inconsistencies due to concurrent access to the same data. 
+
+2. Inserting data on multiple dates:
+- Currently, the code inserts data into MongoDB for a single asatDate. However, financial institutions may need to load data for multiple asatDates.
+- To support this, we can modify the code to accept a list of asatDates and insert data for each date.
+- Additionally, we need to consider the impact of inserting a large volume of data for multiple dates on the performance of the system.
+
+3. Querying in MongoDB just like we do in SQL:
+- As the code migrates index data from SQL to MongoDB, it might be useful to convert SQL statements into MongoDB queries to simplify the migration process.
+- To implement this, we can identify the equivalent MongoDB query for each SQL statement and use it to query data in MongoDB.
+- However, we need to ensure that the MongoDB queries return the same results as the SQL queries to ensure the accuracy of the migrated data.
+
+4. Data fetching based on dates:
+- The code retrieves data from SQL Server based on a specific date range. However, financial institutions may need to retrieve data for a specific date.
+- To implement this, we can modify the code to accept a specific date and retrieve data for that date only.
+- Additionally, we need to consider the impact of retrieving a large volume of data for a specific date on the performance of the system.
+
+5. Updating data from vendor side based on timestamps:
+- Currently, the code inserts data into MongoDB without checking for existing data. However, vendors may update data based on timestamps, and we need to overwrite the existing data with the updated data.
+- To implement this, we can check for existing data with the same timestamp and overwrite it with the updated data. 
+- Additionally, we need to ensure that the overwritten data does not affect any ongoing operations or cause any inconsistencies in the system.
+
