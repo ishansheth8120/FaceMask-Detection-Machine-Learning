@@ -117,3 +117,13 @@ Sure, here are more detailed explanations for each of the points mentioned:
 - To implement this, we can check for existing data with the same timestamp and overwrite it with the updated data. 
 - Additionally, we need to ensure that the overwritten data does not affect any ongoing operations or cause any inconsistencies in the system.
 
+
+
+String sqlQueryETF = "SELECT * FROM MIDAS.TBL_ETF WHERE (SECURITYID, ASATDATE) IN %s ORDER BY SECURITYID, ASATDATE DESC";
+for (List<Pair<String, String>> batch : batches) {
+    List<String> idDatePairs = batch.stream().map(pair -> String.format("('%s', '%s')", pair.getLeft(), pair.getRight())).collect(Collectors.toList());
+    String idDatePairsString = String.join(",", idDatePairs);
+    String sql = String.format(sqlQueryETF, "(" + idDatePairsString + ")");
+    // execute the query and process the results
+}
+
