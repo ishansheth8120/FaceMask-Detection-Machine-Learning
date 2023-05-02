@@ -118,4 +118,15 @@ Sure, here are more detailed explanations for each of the points mentioned:
 - Additionally, we need to ensure that the overwritten data does not affect any ongoing operations or cause any inconsistencies in the system.
 
 
+SELECT *
+FROM MIDAS.TBL_ETF e
+JOIN (
+    SELECT SECURITYID, MAX(ASATDATE) AS ASATDATE
+    FROM MIDAS.TBL_ETF
+    WHERE SECURITYID = ?
+    GROUP BY SECURITYID
+) t ON e.SECURITYID = t.SECURITYID AND e.ASATDATE = t.ASATDATE
+
+
+
 
