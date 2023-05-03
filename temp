@@ -18,10 +18,6 @@ Overall, this code is a simple example of how to transfer data from a SQL Server
 
 
 
-
-
-Sure, here are the bulleted points to explain the provided code:
-
 Main method:
 - Declares and initializes variables for MongoDB connection parameters.
 - Creates a list of server addresses for MongoDB connection.
