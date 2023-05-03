@@ -1,20 +1,25 @@
-This is a Java program that retrieves data from a SQL Server database, processes it, and inserts it into a MongoDB collection. Let me go over the different parts of the code:
+1. Statistics and enhancing multithreading:
+- Generate statistics for data retrieval from SQL server and insertion into MongoDB
+- Collect data size statistics for data being processed
+- Generate stats on different methods and threads to analyze performance
+- Enhance multithreading to improve performance
 
-1. Connection to MongoDB: The code establishes a connection to a MongoDB instance using the MongoClient class, providing the user credentials, the database name, the host, and the port number.
+2. Inserting data on multiple dates:
+- Modify the code to allow inserting records on multiple dates
+- Ensure that records are inserted accurately based on the specified date
 
-2. Collection initialization: The code initializes a MongoDB collection called "ETFSOLA_Resp" and then drops any existing data in the collection using the drop() method.
+3. Querying in MongoDB like SQL:
+- Convert SQL statements into MongoDB queries for data retrieval
+- Ensure that the converted queries work correctly and efficiently
 
-3. Connection to SQL Server: The code establishes a connection to a SQL Server instance using the DriverManager class and provides the URL, username, and password.
+4. Data fetching based on dates:
+- Modify the code to allow fetching data based on dates
+- Ensure that the retrieved data is accurate and complete
 
-4. SQL query: The code retrieves data from a SQL Server table called "TBL_ETFPOSITIONS" that meets certain criteria.
+5. Overwriting updated data:
+- Check if the data has been updated by the vendor based on timestamps
+- Overwrite the data in MongoDB if the data is updated on the same date
 
-5. Processing data: The retrieved data is processed in batches. Each batch of data is processed in a separate thread using the ExecutorService class.
-
-6. MongoDB document creation: After processing, the data is converted to a JSON object and then to a MongoDB document using the Document.parse() method.
-
-7. Insertion of data into MongoDB: The document is then inserted into the MongoDB collection using the insertOne() method. Alternatively, the document can be inserted in bulk using the bulkWrite() method.
-
-Overall, this code is a simple example of how to transfer data from a SQL Server database to a MongoDB collection using Java.
 
 
 
@@ -53,29 +58,8 @@ processBatch method:
 - Calculates the execution time for processing and retrieving data from MongoDB.
 
 
-Sure, here are the pointers as problem statements:
 
-1. Statistics and enhancing multithreading:
-- Generate statistics for data retrieval from SQL server and insertion into MongoDB
-- Collect data size statistics for data being processed
-- Generate stats on different methods and threads to analyze performance
-- Enhance multithreading to improve performance
 
-2. Inserting data on multiple dates:
-- Modify the code to allow inserting records on multiple dates
-- Ensure that records are inserted accurately based on the specified date
-
-3. Querying in MongoDB like SQL:
-- Convert SQL statements into MongoDB queries for data retrieval
-- Ensure that the converted queries work correctly and efficiently
-
-4. Data fetching based on dates:
-- Modify the code to allow fetching data based on dates
-- Ensure that the retrieved data is accurate and complete
-
-5. Overwriting updated data:
-- Check if the data has been updated by the vendor based on timestamps
-- Overwrite the data in MongoDB if the data is updated on the same date
 
 
 1. Statistics and enhancing multithreading:
