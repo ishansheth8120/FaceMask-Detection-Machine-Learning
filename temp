@@ -78,16 +78,6 @@ Sure, here are the pointers as problem statements:
 - Overwrite the data in MongoDB if the data is updated on the same date
 
 
-When a financial institution receives the SOLA Markit index data, they might store it in their systems, usually in a database like MongoDB. The data can be updated by the vendor on a regular basis, like daily or weekly, with new values for existing indices or new indices altogether.
-
-When the vendor updates the data, they usually provide a timestamp indicating when the update occurred. The financial institution can use this timestamp to determine which data needs to be updated in their database. 
-
-For example, if the vendor updates the data every day and the financial institution stores the data by date, they can query the database to check if there is any data for the current date. If there is, they can compare the timestamp of the new data with the timestamp of the existing data to see if an update is needed. If the timestamps match, it means that the data has already been updated for the current date and does not need to be updated again. However, if the timestamps do not match, it means that the data has been updated and the financial institution should replace the old data with the new data.
-
-This process ensures that the financial institution always has the latest SOLA Markit index data in their systems, and that the data is accurate and up-to-date.
-
-Sure, here are more detailed explanations for each of the points mentioned:
-
 1. Statistics and enhancing multithreading:
 - As this code performs multiple operations such as data retrieval from SQL Server, insertion into MongoDB, and data size calculation, it would be helpful to generate statistics on different parts of the code to identify bottlenecks and optimize performance.
 - To achieve this, we can add counters to measure the number of records processed and the time taken for each operation. We can also measure the data size to identify the impact of the data on the system.
